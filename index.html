@@ -248,8 +248,10 @@ input[type=range]::-moz-range-thumb {
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: var(--text-dim);
-  margin-bottom: 12px;
+  margin: 0;
 }
+#treemap .panel-body { margin-top: 12px; }
+#controls .panel-body > .subtitle { margin-top: 8px; }
 #treemap-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -457,6 +459,42 @@ input[type=range]::-moz-range-thumb {
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
 
+/* collapsible panel mechanics */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.collapse-btn {
+  width: 20px; height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s, transform 0.2s;
+}
+.collapse-btn:hover { color: var(--accent); background: var(--bg-input); }
+.collapsible.collapsed .panel-body { display: none; }
+.collapsible.collapsed .collapse-btn { transform: rotate(-90deg); }
+.collapsible { transition: width 0.2s ease; }
+#controls.collapsible.collapsed,
+#treemap.collapsible.collapsed { width: auto; min-width: 0; }
+#controls.collapsible.collapsed { padding: 14px 18px; }
+#treemap.collapsible.collapsed { padding: 14px 18px; width: auto; }
+#controls.collapsible.collapsed .kicker,
+#controls.collapsible.collapsed .subtitle,
+#controls.collapsible.collapsed .stat-row { display: none; }
+#controls.collapsible.collapsed h2 {
+  font-size: 14px; margin: 0;
+  font-variation-settings: "opsz" 36, "wght" 500;
+}
+
 /* footer / attribution */
 #footer {
   position: absolute;
@@ -479,9 +517,15 @@ input[type=range]::-moz-range-thumb {
 <div id="container">
   <svg id="graph"></svg>
 
-  <div id="controls" class="panel">
-    <div class="kicker">Platform Research</div>
-    <h2>A Topic Map of 807 Papers</h2>
+  <div id="controls" class="panel collapsible">
+    <div class="panel-header" data-toggle="controls">
+      <div>
+        <div class="kicker">Platform Research</div>
+        <h2>A Topic Map of 807 Papers</h2>
+      </div>
+      <div class="collapse-btn" title="Collapse (H)">⌄</div>
+    </div>
+    <div class="panel-body">
     <div class="subtitle">Semantic clustering on abstracts over the platform-strategy, two-sided-markets, and ecosystems literature.</div>
     <div class="stat-row"><span id="stat-papers">807 papers</span><span id="stat-citations">6,038 citations</span></div>
 
@@ -518,6 +562,7 @@ input[type=range]::-moz-range-thumb {
       <input type="range" id="link-opacity" min="0" max="100" value="25">
       <span class="range-val" id="link-opacity-val">25</span>
     </div>
+    </div>
   </div>
 
   <div id="right-panel">
@@ -529,9 +574,14 @@ input[type=range]::-moz-range-thumb {
     <div id="legend" class="panel"></div>
   </div>
 
-  <div id="treemap" class="panel">
-    <h3>Research clusters · click to highlight</h3>
-    <div id="treemap-grid"></div>
+  <div id="treemap" class="panel collapsible">
+    <div class="panel-header" data-toggle="treemap">
+      <h3>Research clusters · click to highlight</h3>
+      <div class="collapse-btn" title="Collapse (H)">⌄</div>
+    </div>
+    <div class="panel-body">
+      <div id="treemap-grid"></div>
+    </div>
   </div>
 
   <div id="cluster-detail" class="panel">
@@ -901,8 +951,44 @@ d3.select('#search-input').on('input', function() {
   });
 });
 
+// Collapsible panels
+function setCollapsed(id, collapsed) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('collapsed', collapsed);
+  try { localStorage.setItem('panel:' + id, collapsed ? '1' : '0'); } catch (_) {}
+}
+function togglePanel(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  setCollapsed(id, !el.classList.contains('collapsed'));
+}
+['controls', 'treemap'].forEach(id => {
+  try {
+    const saved = localStorage.getItem('panel:' + id);
+    if (saved === '1') setCollapsed(id, true);
+  } catch (_) {}
+});
+document.querySelectorAll('[data-toggle]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('select, input, button')) return;
+    togglePanel(el.getAttribute('data-toggle'));
+  });
+});
+
 // Escape key clears active state
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'h' || e.key === 'H') {
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const anyExpanded = ['controls', 'treemap'].some(id => {
+      const el = document.getElementById(id);
+      return el && !el.classList.contains('collapsed');
+    });
+    ['controls', 'treemap'].forEach(id => setCollapsed(id, anyExpanded));
+    e.preventDefault();
+    return;
+  }
   if (e.key === 'Escape') {
     if (activeCluster !== null) {
       activeCluster = null;
