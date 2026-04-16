@@ -436,8 +436,8 @@ d3.select('#size-by').on('change', function() {
   currentSize = sizeScale(this.value);
   node.attr('r', d => currentSize(d));
   sim.force('collision', d3.forceCollide().radius(d => currentSize(d)+1));
-  sim.alpha(0.3).restart();
   label.attr('dx', d => currentSize(d)+3);
+  if (layoutMode === 'force') sim.alpha(0.3).restart();
 });
 
 d3.select('#min-cited').on('input', function() {
