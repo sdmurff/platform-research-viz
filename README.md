@@ -1,9 +1,10 @@
-# Platform Research Visualization
+# Strategy Research Visualizations
 
-Interactive semantic topic map of 992 academic papers on platform strategy, two-sided markets, network effects, and ecosystems.
+Interactive semantic topic maps of academic strategy research.
 
-Abstracts embedded with `sentence-transformers` (`all-MiniLM-L6-v2`), clustered with KMeans (10 clusters), and laid out with t-SNE. Toggle between the t-SNE topic map and a force-directed layout.
+- **[Platform Research](https://sdmurff.github.io/platform-research-viz/)** — 807 papers on platform strategy, two-sided markets, network effects, and ecosystems.
+- **[AI & Strategy](https://sdmurff.github.io/platform-research-viz/ai-strategy.html)** — 7,150 papers at the intersection of AI/ML/LLMs and strategic management (pulled from OpenAlex).
 
-**Live site:** https://sdmurff.github.io/platform-research-viz/
+Abstracts embedded with `sentence-transformers` (`all-MiniLM-L6-v2`) and clustered with KMeans; layouts include t-SNE topic maps and force-directed views.
 
-Built for platform strategy research at BYU Marriott School of Business.
+Built for strategy research at BYU Marriott School of Business.
